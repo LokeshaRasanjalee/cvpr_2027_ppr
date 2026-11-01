@@ -1,0 +1,26 @@
+\begin{table*}[t]
+\caption{Fixed-cardinality frame selection for \(k\in\{2,3,4\}\). Batch methods select all \(k\) frames before a single propagation, whereas sequential methods select and propagate one correction at a time. We report video-level mIoU; the oracle gives the best frame subset for each \(k\).}
+\label{tab:fixed_cardinality_appendix}
+
+\centering
+\small
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}llcccccccccccc@{}}
+\toprule
+& & \multicolumn{3}{c}{\textbf{VOST}} & \multicolumn{3}{c}{\textbf{CAMotion}} & \multicolumn{3}{c}{\textbf{SUN-SEG}} & \multicolumn{3}{c}{\textbf{VTUS}} \\
+\cmidrule(lr){3-5} \cmidrule(lr){6-8} \cmidrule(lr){9-11} \cmidrule(l){12-14}
+\textbf{Method} & \textbf{Selection} & \(k{=}2\) & \(k{=}3\) & \(k{=}4\) & \(k{=}2\) & \(k{=}3\) & \(k{=}4\) & \(k{=}2\) & \(k{=}3\) & \(k{=}4\) & \(k{=}2\) & \(k{=}3\) & \(k{=}4\) \\
+\midrule
+Random frames & Batch & 0.584 & 0.613 & 0.632 & 0.825 & 0.831 & 0.845 & 0.766 & 0.787 & 0.802 & 0.693 & 0.727 & 0.760 \\
+Worst-IoU frames & Batch & 0.591 & 0.647 & 0.663 & 0.836 & 0.843 & 0.842 & 0.787 & 0.791 & 0.818 & 0.721 & 0.748 & 0.772 \\
+HSVA (2023) & Batch & 0.635 & 0.663 & 0.679 & 0.837 & 0.844 & 0.845 & 0.792 & 0.828 & 0.830 & 0.770 & 0.781 & 0.794 \\
+IVOS-W (2021) & Sequential & 0.606 & 0.655 & 0.675 & 0.838 & 0.845 & 0.848 & 0.791 & 0.818 & 0.838 & 0.720 & 0.769 & 0.796 \\
+EVA-VOS (2024) & Sequential & 0.629 & 0.667 & 0.681 & 0.846 & 0.848 & 0.854 & 0.800 & 0.825 & 0.852 & 0.763 & 0.786 & 0.810 \\
+Top-\(k\) (2025) & Batch & 0.643 & 0.670 & 0.683 & 0.844 & 0.847 & 0.850 & 0.811 & 0.829 & 0.845 & 0.750 & 0.772 & 0.804 \\
+\textbf{Ours} & \textbf{Batch} & \textbf{0.671} & \textbf{0.688} & \textbf{0.701} & \textbf{0.849} & \textbf{0.852} & \textbf{0.859} & \textbf{0.844} & \textbf{0.862} & \textbf{0.868} & \textbf{0.787} & \textbf{0.799} & \textbf{0.820} \\
+\midrule
+\emph{Oracle} & \emph{Batch} & \emph{0.695} & \emph{0.712} & \emph{0.721} & \emph{0.854} & \emph{0.859} & \emph{0.862} & \emph{0.860} & \emph{0.875} & \emph{0.881} & \emph{0.813} & \emph{0.828} & \emph{0.835} \\
+\bottomrule
+\end{tabular}
+
+\end{table*}

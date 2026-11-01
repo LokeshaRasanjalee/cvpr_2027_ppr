@@ -1,0 +1,5 @@
+\section{Conclusion}
+
+We formulated corrective prompting for promptable video segmentation as a variable-cardinality learning-to-defer problem that accounts for how the value of each correction depends on the other selected frames.
+Our framework couples a cardinality model that determines whether and how many corrections are warranted under a given expert cost with a multi-frame selection model that conditions each choice on the frames already selected and requests the resulting corrections in a single round. Experiments with a SAM2 model across four visual and clinical datasets show that our method achieves the highest mIoU and lowest system cost among non-oracle methods while requesting fewer corrections than the strongest baseline.
+These findings show that coupling cost-aware cardinality decisions with multi-frame selection improves the quality–cost trade-off while consolidating corrective prompting into a single round.

@@ -1,0 +1,27 @@
+\section{Related work}
+
+\subsection{Frame selection for corrective prompting}
+
+Frame selection for efficient human annotation has been studied in both active learning and interactive video segmentation.
+Active-learning approaches often prioritise frames using criteria such as uncertainty, representativeness, or diversity, with the acquired annotations subsequently used to improve the model \cite{vijayanarasimhan2012active, kuznetsova2021efficient, rana2022all}.
+For example, HVSA \cite{hvsa} combines uncertainty- and diversity-based selection with video-specific fine-tuning.
+
+Interactive video segmentation considers a more directly related setting, in which user corrections are used to improve the propagated masks of the current video while the segmentation model remains fixed \cite{yao2020video}.
+Within this setting, several methods have studied where and when the user should intervene.
+IVOS-W \cite{IVOSW} recommends the next frame according to the expected video-level improvement after annotation, showing that the frame with the poorest current mask is not necessarily the most useful one to correct.
+EVA-VOS \cite{delatolas2024learning} selects the next frame using representations derived from the image and predicted mask, favouring frames that differ from those already annotated.
+Lazy-XMem \cite{vujasinovic2024strike} instead monitors uncertainty in the propagated masks and triggers a correction when the prediction becomes unreliable.
+Although these methods improve where the user intervenes, they select correction frames sequentially. When multiple corrections are needed for a video, this requires repeated cycles of propagation, expert review, and frame selection before all necessary corrections are identified \cite{delatolas2024learning}.
+Selecting a set of correction frames for each video can reduce this back-and-forth process while allowing the number of requested frames to adapt to the current propagation quality and the cost of expert assistance.
+
+\subsection{Learning to defer for promptable video segmentation}
+
+Learning to defer framework decides whether to retain a machine prediction or request expert assistance. Conventional formulations learn this decision by balancing the expected errors of the machine and expert against the cost of expert consultation \cite{mao2023two, mozannar2020consistent,verma2022calibrated,hemmer2304learning}.
+
+Related human–AI collaboration methods extend this idea to settings with multiple experts. LECODU \cite{zhang2024learning} predicts how many experts should be consulted for each input and then randomly samples that number from the available expert pool before combining their predictions with the machine output. Top-k \cite{montreuil2025ask} learning to defer instead ranks experts according to their estimated suitability for the input and selects the highest-ranked k. Its adaptive Top-k(x) formulation additionally allows the consultation cardinality to vary across inputs.
+
+Most L2D methods target classification.
+L2RP~\cite{rasanjalee2026understanding} is, to our knowledge, the first application of L2D to promptable video segmentation, but it defers at most once per video.
+Extending the setting to multiple corrective prompts is not straightforward, because each correction re-propagates through the video and changes how much the remaining candidates would add.
+This also prevents direct application of Top-\(k(x)\)~\cite{montreuil2025ask}, which scores each expert independently and can therefore select several adjacent frames that address the same failure.
+Our framework instead selects the corrective frames jointly, conditioning each choice on the frames already selected, and allows the number of corrections to vary with the video.

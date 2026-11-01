@@ -1,0 +1,29 @@
+\section{Ablation studies}
+\label{sec:ablation}
+
+\textbf{Effect of the expert-cost weight: }
+Figure~\ref{fig:alpha_sweep} shows that increasing $\alpha$ reduces both
+the mean selected cardinality and mIoU. Our method generally achieves
+higher mIoU than the baselines at comparable correction budgets,
+showing a consistent quality--cost trade-off across datasets.
+
+\noindent\textbf{Number of sampled frame subsets: }
+Table~\ref{tab:number_random_subsets} shows that increasing the number of
+sampled subsets generally improves mIoU. Compared with no sampled alternatives
+(\(B=0\)), \(B=4\) improves mIoU by 0.034 on VOST, 0.022 on CAMotion, and
+0.032 on VTUS. SUN-SEG performs best at \(B=2\), with little change at \(B=4\).
+We therefore use \(B=4\) in the main experiments.
+
+\noindent\textbf{Cardinality and frame-selection components:}
+Table~\ref{tab:component_ablation} shows that replacing either learned
+component with a random alternative reduces video-level mIoU. Randomising
+the cardinality decision causes the larger reduction, particularly on
+VOST and VTUS, while random frame selection also lowers performance
+across all datasets. Combining the learned cardinality model with
+multi-frame selection achieves the highest mIoU on every dataset.
+
+\noindent\textbf{Multiple correction rounds:}
+Although our framework requests all corrections in a single round, the same policy can be reapplied after each re-propagation.
+Figure~\ref{fig:sunseg_iterative_prompting} reports this setting on SUN-SEG for maximum cardinalities \(K\in\{1,2,3,4\}\).
+Larger batches reach a given mean IoU in fewer interaction rounds, which matters because each round returns the video to the expert for review.
+Each round applies the policy to the current propagation alone, without distributing a correction budget across rounds, and optimising jointly across rounds is a natural extension.

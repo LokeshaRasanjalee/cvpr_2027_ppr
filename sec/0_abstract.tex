@@ -1,0 +1,13 @@
+\begin{abstract}
+Promptable video segmentation models such as SAM2 propagate an object mask through a video from a few expert prompts.
+The propagated mask drifts under occlusion and appearance change, and repairing it requires further expert intervention.
+Existing frame-selection methods decide where to place these corrections, but they fail to account for the trade-off between the resulting accuracy gain and the expert cost incurred in generating those corrections.
+We formulate corrective prompting as a \textit{variable-cardinality learning-to-defer} problem: given the current propagation and a specified expert cost, our method decides whether to request assistance, how many corrections are justified, and which frames receive them.
+A cardinality model estimates the number of frames to correct, and a multi-frame selection model selects the frames to be corrected conditioned on the frames already selected, so the requested prompts are complementary to one another.
+Experiments with SAM2.1 on four datasets covering object transformation, camouflage, colonoscopy, and thyroid ultrasound show that our method achieves
+the best quality--cost trade-off among learned methods.
+Relative to the initial propagation, it improves mIoU by $5.6\%$--$47.8\%$.
+Compared with the strongest
+adapted baseline, Top-$k(x)$, it reduces corrective prompts by $3.1\%$--$9.2\%$ and system cost by $5.4\%$--$11.4\%$, while requesting and applying the selected corrections within a single correction round.
+Code is released upon acceptance.
+\end{abstract}

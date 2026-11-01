@@ -1,0 +1,43 @@
+\begin{table}[t]
+\caption{Fixed-cardinality frame selection at \(k=3\). Rounds column shows $1$ when all three frames are selected in a single round, $3$ when one frame is selected per round.}
+\label{tab:fixed_cardinality}
+
+\centering
+\small
+\setlength{\tabcolsep}{2.4pt}
+\renewcommand{\arraystretch}{1.0}
+
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{@{}llcccc@{}}
+\toprule
+\textbf{Method} &
+\textbf{Rounds} &
+\textbf{VOST} &
+\textbf{CAMotion} &
+\textbf{SUN-SEG} &
+\textbf{VTUS}
+\\
+\midrule
+Random frames      & 1      & 0.613 & 0.831 & 0.787 & 0.727 \\
+Min-IoU frames   & 1      & 0.647 & 0.843 & 0.791 & 0.748 \\
+HVSA \cite{hvsa}        & 1      & 0.663 & 0.844 & 0.828 & 0.781 \\
+IVOS-W \cite{IVOSW}      & 3 & 0.655 & 0.845 & 0.818 & 0.769 \\
+EVA-VOS \cite{delatolas2024learning}     & 3 & 0.667 & 0.848 & 0.825 & 0.786 \\
+Top-$k$ \cite{montreuil2025ask}     & 1      & 0.670 & 0.847 & 0.829 & 0.772 \\
+\textbf{Ours}      & \textbf{1}
+                   & \textbf{0.688}
+                   & \textbf{0.852}
+                   & \textbf{0.862}
+                   & \textbf{0.799} \\
+\midrule
+\textit{Oracle}    & \textit{1}
+                   & \textit{0.712}
+                   & \textit{0.859}
+                   & \textit{0.875}
+                   & \textit{0.828} \\
+\bottomrule
+\end{tabular}
+}
+
+
+\end{table}

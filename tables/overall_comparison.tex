@@ -1,0 +1,41 @@
+\begin{table*}[t]
+\caption{
+Comparison of variable-cardinality deferral across four datasets at
+\(\alpha=0.01\). We report segmentation quality
+(\(\mathrm{mIoU}\uparrow\)), mean selected cardinality
+(\(\widehat{k}\downarrow\)), and mean system cost
+(\(c_{\widehat{k}}\downarrow\)), where
+\(c_{\widehat{k}}=(1-\mathrm{mIoU})+\alpha\widehat{k}\).
+Under \(\mathcal{K}\), \(\{0\}\), \(\{0,1\}\), and \(\{0{:}4\}\) denote
+the allowed correction cardinalities. Rand., Single, Online, Indep., and
+Multi. denote random-subset selection, single-frame selection, online
+triggering, independent ranking, and multi-frame selection, respectively.
+}
+\label{tab:overall_comparison}
+
+\centering
+\small
+\setlength{\tabcolsep}{2pt}
+\renewcommand{\arraystretch}{1.0}
+\begin{tabular}{@{}lcc|ccc|ccc|ccc|ccc@{}}
+\toprule
+& & & \multicolumn{3}{c|}{\textbf{VOST}} & \multicolumn{3}{c|}{\textbf{CAMotion}} & \multicolumn{3}{c|}{\textbf{SUN-SEG}} & \multicolumn{3}{c}{\textbf{VTUS}} \\
+\textbf{Method} & $\boldsymbol{k}$ & \textbf{Sel.}
+ & mIoU$\uparrow$ & $\hat{k}\!\downarrow$ & $c\!\downarrow$
+ & mIoU$\uparrow$ & $\hat{k}\!\downarrow$ & $c\!\downarrow$
+ & mIoU$\uparrow$ & $\hat{k}\!\downarrow$ & $c\!\downarrow$
+ & mIoU$\uparrow$ & $\hat{k}\!\downarrow$ & $c\!\downarrow$ \\
+\midrule
+No correction & $0$ & -- & $.473$ & $0.00$ & $.527$ & $.802$ & $0.00$ & $.198$ & $.711$ & $0.00$ & $.289$ & $.627$ & $0.00$ & $.373$ \\
+Random & $0{:}4$ & Rand. & $.587_{\pm.005}$ & $2.00$ & $.433$ & $.819_{\pm.003}$ & $2.00$ & $.191$ & $.762_{\pm.008}$ & $2.00$ & $.248$ & $.694_{\pm.004}$ & $2.00$ & $.316$ \\
+L2RP~\cite{rasanjalee2026understanding} & $0{,}1$ & Single & $.602_{\pm.002}$ & $0.76$ & $.406$ & $.822_{\pm.002}$ & $0.47$ & $.180$ & $.774_{\pm.006}$ & $0.52$ & $.229$ & $.722_{\pm.001}$ & $0.88$ & $.282$ \\
+Lazy-XMem~\cite{vujasinovic2024strike} & $0{:}4$ & Online & $.644$ & $3.33$ & $.390$ & $.845$ & $3.11$ & $.171$ & $.830$ & $3.65$ & $.188$ & $.764$ & $4.00$ & $.256$ \\
+LECODU~\cite{zhang2024learning} & $0{:}4$ & Rand. & $.658_{\pm.001}$ & $3.21$ & $.374$ & $.837_{\pm.002}$ & $1.28$ & $.169$ & $.836_{\pm.004}$ & $2.01$ & $.174$ & $.755_{\pm.002}$ & $3.26$ & $.261$ \\
+Top-$k(x)$~\cite{montreuil2025ask} & $0{:}4$ & Indep. & $.662_{\pm.005}$ & $2.82$ & $.366$ & $.838_{\pm.002}$ & $1.30$ & $.168$ & $.842_{\pm.005}$ & $1.80$ & $.167$ & $.795_{\pm.005}$ & $2.90$ & $.220$ \\
+\textbf{Ours} & $\mathbf{0{:}4}$ & \textbf{Multi.} & $\mathbf{.699}_{\pm.002}$ & $2.56$ & $\mathbf{.327}$ & $\mathbf{.847}_{\pm.001}$ & $1.19$ & $\mathbf{.159}$ & $\mathbf{.850}_{\pm.003}$ & $1.71$ & $\mathbf{.158}$ & $\mathbf{.819}_{\pm.002}$ & $2.81$ & $\mathbf{.195}$ \\
+\midrule
+\textit{Oracle} & $\mathit{0{:}4}$ & \textit{Best} & $.714$ & $2.86$ & $.314$ & $.851$ & $1.10$ & $.155$ & $.874$ & $1.84$ & $.135$ & $.831$ & $2.87$ & $.183$ \\
+\bottomrule
+\end{tabular}
+
+\end{table*}

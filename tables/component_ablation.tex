@@ -1,0 +1,63 @@
+\captionof{table}{
+        Ablation of the cardinality-decision and frame-selection components.
+        ``Cardinality'' denotes the cardinality model, while
+        ``Multi-frame'' denotes the multi-frame selection model.
+        Values are video-level mIoU.
+        }
+        \label{tab:component_ablation}
+
+\resizebox{\linewidth}{!}{
+        \begin{tabular}{llcccc}
+            \toprule
+            \makecell[c]{\textbf{Cardinality}\\\textbf{decision}}
+            &
+            \makecell[c]{\textbf{Frame}\\\textbf{selection}}
+            &
+            \textbf{VOST}
+            &
+            \textbf{CAMotion}
+            &
+            \textbf{SUN-SEG}
+            &
+            \textbf{VTUS} \\
+            \midrule
+
+            Random
+            &
+            Multi-frame
+            &
+            0.621
+            &
+            0.829
+            &
+            0.802
+            &
+            0.746 \\
+
+            Cardinality
+            &
+            Random
+            &
+            0.674
+            &
+            0.831
+            &
+            0.834
+            &
+            0.806 \\
+
+            \textbf{Cardinality}
+            &
+            \textbf{Multi-frame}
+            &
+            \textbf{0.699}
+            &
+            \textbf{0.847}
+            &
+            \textbf{0.850}
+            &
+            \textbf{0.819} \\
+
+            \bottomrule
+        \end{tabular}
+        }

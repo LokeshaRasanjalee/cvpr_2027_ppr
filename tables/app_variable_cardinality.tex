@@ -1,0 +1,41 @@
+\begin{table*}[t]
+\caption{Variable-cardinality frame selection under maximum correction budgets
+\(K_{\max}\in\{2,3,4,5,6\}\) at \(\alpha=0.01\). For each method and dataset,
+we report video-level segmentation quality (\(\mathrm{mIoU}\uparrow\)) and the
+mean number of selected correction frames (\(\bar{k}\downarrow\)). Boldface
+denotes our method.}
+\label{tab:app_variable_cardinality}
+
+\centering
+\small
+\setlength{\tabcolsep}{3.2pt}
+\begin{tabular}{@{}llcccccccc@{}}
+\toprule
+& & \multicolumn{2}{c}{\textbf{VOST}} & \multicolumn{2}{c}{\textbf{CAMOtion}} & \multicolumn{2}{c}{\textbf{SUN-SEG}} & \multicolumn{2}{c}{\textbf{VTUS}} \\
+\cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(lr){7-8} \cmidrule(l){9-10}
+\textbf{K} & \textbf{Method} & mIoU & $\bar{k}$ & mIoU & $\bar{k}$ & mIoU & $\bar{k}$ & mIoU & $\bar{k}$ \\
+\midrule
+
+2 & LECODU & 0.622 & 2.00 & 0.828 & 1.01 & 0.802 & 2.00 & 0.739 & 2.00 \\
+2 & Top-\(k\) (\(x\)) & 0.638 & 1.57 & 0.831 & 0.74 & 0.813 & 1.32 & 0.756 & 1.80 \\
+2 & \textbf{Ours} & \textbf{0.671} & \textbf{2.00} & \textbf{0.838} & \textbf{0.93} & \textbf{0.830} & \textbf{1.29} & \textbf{0.777} & \textbf{1.97} \\
+\midrule
+3 & LECODU & 0.642 & 3.00 & 0.830 & 0.95 & 0.814 & 2.12 & 0.758 & 3.00 \\
+3 & Top-\(k\) (\(x\)) & 0.668 & 2.33 & 0.832 & 0.89 & 0.827 & 1.59 & 0.774 & 2.37 \\
+3 & \textbf{Ours} & \textbf{0.686} & \textbf{2.44} & \textbf{0.841} & \textbf{1.01} & \textbf{0.841} & \textbf{1.60} & \textbf{0.797} & \textbf{2.73} \\
+\midrule
+4 & LECODU & 0.658 & 3.21 & 0.837 & 1.28 & 0.836 & 2.01 & 0.755 & 3.26 \\
+4 & Top-\(k\) (\(x\)) & 0.662 & 2.82 & 0.838 & 1.30 & 0.842 & 1.80 & 0.795 & 2.90 \\
+4 & \textbf{Ours} & \textbf{0.699} & \textbf{2.56} & \textbf{0.847} & \textbf{1.19} & \textbf{0.850} & \textbf{1.71} & \textbf{0.819} & \textbf{2.81} \\
+\midrule
+5 & LECODU & 0.670 & 4.63 & 0.841 & 1.36 & 0.847 & 2.52 & 0.803 & 3.86 \\
+5 & Top-\(k\) (\(x\)) & 0.671 & 3.50 & 0.840 & 0.94 & 0.845 & 2.05 & 0.804 & 3.00 \\
+5 & \textbf{Ours} & \textbf{0.706} & \textbf{3.73} & \textbf{0.849} & \textbf{1.13} & \textbf{0.866} & \textbf{2.24} & \textbf{0.837} & \textbf{4.20} \\
+\midrule
+6 & LECODU & 0.684 & 4.96 & 0.849 & 1.22 & 0.855 & 2.26 & 0.819 & 4.42 \\
+6 & Top-\(k\) (\(x\)) & 0.680 & 4.09 & 0.842 & 1.33 & 0.852 & 2.24 & 0.811 & 4.47 \\
+6 & \textbf{Ours} & \textbf{0.715} & \textbf{3.67} & \textbf{0.855} & \textbf{1.45} & \textbf{0.877} & \textbf{2.32} & \textbf{0.847} & \textbf{4.07} \\
+\bottomrule
+\end{tabular}
+
+\end{table*}

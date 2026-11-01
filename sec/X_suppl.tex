@@ -1,0 +1,244 @@
+\clearpage
+\appendix
+\maketitlesupplementary
+
+\section{Datasets}
+\label{app:dataset_details}
+We evaluate the proposed method on four datasets covering substantially
+different video-segmentation settings: object transformation in VOST,
+camouflaged objects in CAMotion, colonoscopy in SUN-SEG, and thyroid
+ultrasound in VTUS.
+This diversity allows us to assess frame selection
+under different appearance changes, object visibility, imaging
+modalities, and mask-propagation failures.
+
+We preserve the original training and validation splits of each dataset.
+To increase the number of training samples, long training videos are
+divided into shorter overlapping clips, while VOST videos are used
+without division. Validation videos are kept unchanged. The dataset sizes
+and clip-generation settings are reported in
+Table~\ref{tab:app_dataset_statistics}.
+
+\input{tables/app_dataset_statistics}
+
+For each training clip and validation video, we define ten uniformly
+spaced temporal locations. The first receives the initial ground-truth
+mask prompt, and the remaining nine are correction candidates. These
+locations only determine where prompts can be placed; SAM2 propagates
+over the entire sequence, and mIoU is computed over all frames in that
+sequence.
+
+\section{Additional implementation details}
+
+\subsection{Promptable segmentation model configurations}
+
+We use a frozen SAM2.1 Hiera-Tiny model with an internal image size of
+\(512\times512\) to reduce propagation time without a noticeable loss in
+segmentation accuracy.
+
+We use ground-truth masks as the initial and corrective prompts. A
+ground-truth mask represents an ideal expert correction after the system
+defers a frame for annotation. This removes variation caused by prompt
+quality and allows the experiments to isolate the decisions of whether
+to request correction, how many frames to correct, and which frames to
+select.
+
+\subsection{Architectural details}
+
+\paragraph{Feature representation and encoder.}
+For each sampled frame location, we use the mask-memory feature map produced
+by the frozen SAM2.1 memory encoder. This representation jointly encodes the
+frame appearance and its current predicted mask, and is used by SAM2 to
+condition subsequent mask propagation.
+
+Each mask-memory feature map is adaptively average-pooled to a \(4\times4\)
+grid, yielding 16 spatial tokens with 64 channels. The tokens are projected to
+128 dimensions, combined with learned spatial positional embeddings, and
+processed by one four-head spatial Transformer layer. Spatial mean pooling
+then produces one representation per frame. After adding learned temporal
+positional embeddings, two four-head temporal Transformer layers exchange
+information across the sampled video sequence, producing a contextualized
+128-dimensional representation \(\mathbf{h}_i\) for each location. The frame
+selector and cardinality model use independently trained encoders with this
+architecture and do not share parameters.
+
+\paragraph{Multi-frame selection head.}
+The selector uses single-head soft cross-attention, with each candidate frame
+as the query and the prompted and previously selected frames as keys and
+values. The resulting 128-dimensional context vector is concatenated with the
+128-dimensional candidate representation and a learned 128-dimensional
+embedding of the requested cardinality. The resulting 384-dimensional vector
+is processed by layer normalization and a two-layer MLP with dimensions
+\(384\rightarrow128\rightarrow1\), using GELU activation and dropout 0.1.
+Previously prompted and selected frames are masked. The next frame is sampled
+categorically during training and selected greedily during inference.
+
+\input{tables/app_variable_cardinality}
+
+\paragraph{Cardinality head.}
+The cardinality model mean-pools its encoded frame representations to obtain a
+128-dimensional video-level vector. This vector is processed by layer
+normalization and a two-layer MLP with dimensions
+\(128\rightarrow128\rightarrow(K+1)\), using GELU activation and dropout 0.1.
+The outputs represent non-deferral and cardinalities \(1,\ldots,K\). The frame
+selector is frozen during cardinality-model training.
+
+The complete deferral decision, including cardinality prediction and frame selection, takes approximately \(30\,\mathrm{ms}\) per video, excluding SAM2 propagation.
+
+\section{Additional baseline details}
+
+We adapt baselines from learning to defer and video frame selection. All
+baselines use the same frozen SAM2.1 Hiera-Tiny model, sampled prompt
+locations, and ground-truth mask prompts. The first location provides the
+initial prompt, while the remaining locations are eligible for additional
+expert prompts. The methods differ in how they determine the prompt
+cardinality \(k\) and select the corresponding frames.
+
+\subsection{Reference policies.}
+The non-deferral policy requests no additional prompt (\(k=0\)) and retains
+the initial SAM2 propagation. For a given \(k>0\), the minimum-IoU policy
+selects the \(k\) eligible frames with the lowest frame-level IoU. This
+approximates an expert visually inspecting the propagation and prompting the
+frames that appear most erroneous.
+
+For fixed-cardinality evaluation, \(k\) is specified in advance. The random
+policy uniformly samples a \(k\)-frame subset without replacement, while the
+oracle selects the subset of size \(k\) that produces the highest video-level
+mIoU. For variable-cardinality evaluation, the random policy first samples
+\(k\) uniformly from \(\{0,\ldots,K\}\) and then samples \(k\) eligible frames.
+The oracle jointly selects the cardinality and frame subset with the lowest
+cost \(1-\operatorname{mIoU}+\alpha k\). In both settings, the oracle is
+computed by evaluating all eligible combinations only to compare our method
+with the best achievable performance; this exhaustive search is not required
+during training or inference.
+
+\subsection{Learning-to-defer adaptations.}
+All learning-to-defer baselines use the same inputs and
+cardinality architecture as our method.
+Only their output spaces and training losses are changed to follow the
+corresponding original formulations.
+
+LECODU and Adaptive Top-$k(x)$
+were originally formulated for classification with multiple users or experts.
+We treat each eligible frame location as a deferral action, where selecting it
+requests an expert mask prompt. In our LECODU adaptation, the predicted number
+of users determines \(k\), after which \(k\) eligible frames are sampled
+uniformly. Adaptive Top-$k(x)$ predicts \(k\), estimates the utility of
+prompting each frame independently, and selects the \(k\) highest-ranked
+frames.
+
+L2RP was originally designed for promptable video
+segmentation. We adapt it to our inputs and
+cardinality architecture while retaining its original loss and output
+space. It therefore decides between retaining the current propagation and
+requesting one expert prompt at a selected frame, supporting only
+\(k\in\{0,1\}\).
+
+\input{tables/fixed_cardinality_appendix}
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]
+    {Figures/iterative_iou_meank_by_round_maxk1to4_all_datasets.pdf}
+    \caption{Mean IoU over corrective-prompting rounds on all four datasets
+    at \(\alpha=0.001\). Our models with maximum cardinality
+    \(K\in\{1,2,3,4\}\) select multiple correction frames as a batch in each
+    round, whereas EVA-VOS and IVOS-W select one frame per round. After each
+    round, the selected frames are prompted and the full video is
+    re-propagated. Point labels indicate the mean cumulative number of
+    selected correction frames.}
+    \label{fig:iterative_all_datasets}
+\end{figure*}
+
+\subsection{Video frame-selection adaptations.}
+Lazy-XMem, HVSA,
+EVA-VOS, and IVOS-W use different
+criteria for determining when or where annotations should be requested. We
+retain their triggering or frame-selection procedures while using the same
+frozen SAM2.1 model and eligible frame locations. Lazy-XMem uses prediction
+uncertainty to trigger a prompt; HVSA selects frames using uncertainty and
+diversity; EVA-VOS uses its frame-selection component; and IVOS-W uses its
+learned frame-recommendation policy.
+
+The original HVSA framework performs video-specific test-time fine-tuning
+after acquiring annotations. Our adaptation uses only its frame-selection
+procedure and does not retrain the segmentation model. Instead, selected
+frames receive ground-truth mask prompts and the frozen SAM2.1 model propagates
+the updated segmentation. Further, sequential methods re-propagate after each
+prompt before selecting the next frame, whereas batch methods select all
+\(k\) frames from the current propagation and apply their prompts together.
+
+\section{Additional results}
+
+\subsection{Variable cardinality for different maximum budgets}
+The main experiments use \(K=4\) additional corrections. Table~\ref{tab:app_variable_cardinality} extends this analysis to
+\(K_{\max}\in\{2,3,4,5,6\}\) at \(\alpha=0.01\). Our method achieves
+the highest mIoU across all datasets and correction limits.
+
+\subsection{Fixed-cardinality frame selection for different budgets}
+
+Table~\ref{tab:fixed_cardinality_appendix} shows that our method achieves the
+highest non-oracle mIoU across all datasets and
+\(k\in\{2,3,4\}\). The gains are particularly clear on VOST, SUN-SEG,
+and VTUS, while competing methods perform more similarly on CAMotion.
+This indicates that our selector identifies more effective sets of
+correction frames under the same fixed expert budget.
+
+\subsection{Iterative application across datasets}
+Figure~\ref{fig:iterative_all_datasets} extends the SUN-SEG analysis in
+the main paper to all four datasets. We use \(\alpha=0.001\) so that the
+policy continues to request useful corrections over multiple rounds,
+rather than quickly selecting \(k=0\) as segmentation quality improves.
+This setting also provides a closer comparison with EVA-VOS and IVOS-W,
+which focus on frame selection without accounting for expert cost. The results show that batch selection can obtain gains
+comparable to multiple sequential interventions in fewer interaction
+rounds, although the benefit varies with the dataset and maximum
+cardinality \(K\)
+
+\subsection{Results for different expert costs}
+
+The main paper reports results at \(\alpha=0.01\) and visualises the
+quality--cost trade-off across additional expert costs.  Here, we
+provide the exact values corresponding to the curves shown in the main
+figure. Each table entry reports the video-level mIoU and average
+selected cardinality, \((\mathrm{mIoU}, \widehat{k})\), for
+a given value of \(\alpha\).
+
+\input{tables/alpha_sweep_vost_camotion}
+
+\input{tables/alpha_sweep_sunseg_vtus}
+
+\subsection{Qualitative results}
+
+Figures~\ref{fig:vost_qualitative}--\ref{fig:vtus_qualitative} present qualitative comparisons on VOST, CAMotion, SUN-SEG, and VTUS using examples spanning different levels of initial propagation quality. Across these cases, our method selects correction cardinalities and frame sets that achieve higher final IoU and lower system cost than Top-$k(x)$. The examples further illustrate complementary frame selection in difficult videos and the avoidance of unnecessary corrections when the initial propagation is already reliable.
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{Figures/vost_comparison_grid.pdf}
+    \caption{Qualitative comparison on VOST, which contains substantial object appearance and shape transformations. The examples show an egg being broken and a bag being squeezed, where deformation makes mask propagation challenging. The Top-$k(x)$ and Ours rows show the masks obtained after applying all selected corrective prompts and re-propagating the video. In the low-initial-IoU example, our method achieves higher final IoU using fewer prompts and lower system cost. In the high-initial-IoU example, it avoids unnecessary corrections while obtaining slightly higher IoU and lower cost. Coloured borders and prompt markers indicate the selected correction frames.}
+    \label{fig:vost_qualitative}
+\end{figure*}
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]
+    {Figures/camotion_comparison_grid.pdf}
+    \caption{Qualitative comparison on CAMotion, where foreground objects are difficult to distinguish from their surrounding backgrounds. The examples show an anemone shrimp with relatively low initial IoU and a mossy frog with high initial IoU. The Top-$k(x)$ and Ours rows show the masks obtained after applying the selected corrective prompts and re-propagating the video. In the low-initial-IoU example, our method achieves higher IoU and lower system cost by selecting three complementary correction frames. In the high-initial-IoU example, both methods request one correction, while our selected frame yields slightly higher IoU and lower cost. Coloured borders and prompt markers indicate the selected correction frames.}
+    \label{fig:camotion_qualitative}
+\end{figure*}
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]
+    {Figures/sunseg_comparison_grid.pdf}
+    \caption{Qualitative comparison on SUN-SEG, where polyp appearance, scale, and viewpoint can vary substantially across colonoscopy frames. The Top-$k(x)$ and Ours rows show the masks obtained after applying the selected corrective prompts and re-propagating the video. In the low-initial-IoU example, our method selects three corrective frames and achieves substantially higher IoU with lower system cost than Top-$k(x)$, which requests four prompts. In the high-initial-IoU example, our method retains the initial propagation with \(k=0\), whereas Top-$k(x)$ requests an unnecessary correction that reduces IoU and increases system cost. Coloured borders and prompt markers indicate the selected correction frames.}
+    \label{fig:sunseg_qualitative}
+\end{figure*}
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]
+    {Figures/vtus_comparison_grid.pdf}
+    \caption{Qualitative comparison on VTUS, where thyroid nodules exhibit low contrast, ambiguous boundaries, and substantial variation in appearance across ultrasound frames. The Top-$k(x)$ and Ours rows show the masks obtained after applying the selected corrective prompts and re-propagating the video. In the low-initial-IoU example, our method selects four complementary correction frames and substantially improves IoU while achieving a much lower system cost than Top-$k(x)$. In the high-initial-IoU example, both methods request two corrections, but our selected frames yield higher IoU and lower system cost. Coloured borders and prompt markers indicate the selected correction frames.}
+    \label{fig:vtus_qualitative}
+\end{figure*}

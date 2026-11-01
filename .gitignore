@@ -1,0 +1,17 @@
+# LaTeX build intermediates
+*.aux
+*.blg
+*.brf
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex*
+*.toc
+*.lof
+*.lot
+*.bbl
+
+# Generated working files
+/build/
+/tmp/
