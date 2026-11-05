@@ -1,0 +1,29 @@
+% Source: Results/Table 4/component_ablation_four_datasets.csv
+\begin{table*}[t]
+\centering
+\caption{Component ablation across four datasets at
+$\alpha=0.01$. We compare fixed ($k=4$) and learned
+cardinality with static-context and selection-conditioned
+frame selection. Static-context ranking scores candidate
+frames without conditioning on previously selected frames,
+whereas selection-conditioned ranking updates candidate
+scores after each selection. Both variants use matched
+architectures and training objectives.}
+\label{tab:component_ablation_four_datasets}
+\small
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{@{}ll*{4}{ccc}@{}}
+\toprule
+& & \multicolumn{3}{c}{\textbf{VOST}} & \multicolumn{3}{c}{\textbf{CAMotion}} & \multicolumn{3}{c}{\textbf{SUN-SEG}} & \multicolumn{3}{c}{\textbf{VTUS}} \\
+\cmidrule(lr){3-5}\cmidrule(lr){6-8}\cmidrule(lr){9-11}\cmidrule(lr){12-14}
+\textbf{Cardinality} & \textbf{Frame selection}
+ & mIoU$\uparrow$ & $\hat{k}$ & $c\downarrow$ & mIoU$\uparrow$ & $\hat{k}$ & $c\downarrow$ & mIoU$\uparrow$ & $\hat{k}$ & $c\downarrow$ & mIoU$\uparrow$ & $\hat{k}$ & $c\downarrow$ \\
+\midrule
+Fixed $k=4$ & Static-context & 0.690 & 4.00 & 0.350 & 0.845 & 4.00 & 0.195 & 0.846 & 4.00 & 0.194 & 0.805 & 4.00 & 0.235 \\
+Fixed $k=4$ & Selection-conditioned & 0.710 & 4.00 & 0.330 & 0.854 & 4.00 & 0.186 & 0.862 & 4.00 & 0.178 & 0.820 & 4.00 & 0.220 \\
+\midrule
+Learned $k$ & Static-context & 0.675 & 2.72 & 0.352 & 0.836 & 1.28 & 0.177 & 0.834 & 1.85 & 0.185 & 0.799 & 2.90 & 0.230 \\
+\textbf{Learned $k$} & \textbf{Selection-conditioned} & \textbf{0.699} & \textbf{2.56} & \textbf{0.327} & \textbf{0.847} & \textbf{1.19} & \textbf{0.165} & \textbf{0.850} & \textbf{1.71} & \textbf{0.167} & \textbf{0.819} & \textbf{2.81} & \textbf{0.209} \\
+\bottomrule
+\end{tabular}
+\end{table*}

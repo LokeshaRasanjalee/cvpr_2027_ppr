@@ -11,105 +11,105 @@ We evaluate the proposed framework by posing three questions.
 \paragraph{Datasets and prompting protocol.}
 We evaluate on VOST \cite{tokmakov2023breaking}, CAMotion
 \cite{yao2026camotion}, SUN-SEG \cite{ji2022vps}, and VTUS
-\cite{yang2024vivim}, using the official train/test splits. We define
-ten uniformly spaced temporal locations per video: the first receives
-the initial ground-truth mask prompt, and the remaining nine are
-correction candidates. These locations restrict only prompt placement;
-SAM2 propagates over the complete video, and training rewards and
-video-level mIoU are computed over all frames. Unless otherwise stated,
-corrective prompts are ground-truth masks, and we allow up to $K=4$
-additional corrections. This setting allows the method to address
-multiple propagation failures while limiting the maximum expert effort.
-Additional details and results for other values of $K$ are provided in
-the appendix.
+\cite{yang2024vivim}, using the official train/test splits.
+We sample ten uniformly spaced frames per video for prompting, with an initial ground-truth mask provided in the first frame to identify the object of interest. This sampling protocol enables tractable exhaustive oracle comparisons, while our framework operates without combinatorial search. We further evaluate larger candidate pools in \ref{sec:ablation}.
+SAM2 propagates over the complete video, and training rewards
+and video-level mIoU are computed over all frames.
+Unless otherwise stated, corrective prompts are ground-truth
+masks, and we allow up to $K=4$ 
+% \lokesha{make this 3, if llm flaged 10 frame limitation we need to handle it}
+%\lokesha{later update mask to point prompt} 
+additional corrections,
+enabling the method to address multiple propagation failures
+while evaluating variable-cardinality decisions within a
+bounded correction budget.
+Additional details and results for other values of $K$
+are provided in the appendix.
 
 \paragraph{Implementation details.}
-
 We use a frozen SAM2.1 Hiera-Tiny model \cite{ravi2025sam} as the
-promptable video segmentation model. For each sampled frame, we use the
-embeddings produced by the SAM2 memory encoder, which jointly encode the
-frame appearance and its corresponding current predicted mask.
-These representations are processed by independently trained spatial-temporal encoders for the multi-frame selection model and cardinality model, followed by MLP decision heads. The frame selector additionally uses candidate-to-context attention and learned cardinality embeddings.
+promptable video segmentation model. For each sampled frame, we use
+embeddings produced by the SAM2 memory encoder, which jointly encode
+frame appearance and the corresponding predicted mask.
+These representations are processed by independently trained
+spatial-temporal encoders for the multi-frame selection and
+cardinality models, followed by MLP decision heads.
+The frame selector additionally uses candidate-to-context attention
+and learned cardinality embeddings.
 
-The frame selector is trained for 400 epochs with $B=4$, after which it is frozen and the cardinality model is trained for 200 epochs.
-Both models use AdamW (learning rate \(10^{-5}\), weight decay \(10^{-4}\), and batch size 16) and are trained on an NVIDIA GeForce RTX 5090 GPU. All learned methods are evaluated over three random seeds. Reported
-$\pm$ values denote the standard deviation across these runs. Additional implementation details are provided in the appendix.
+The frame selector is trained for 400 epochs with $B=4$ sampled
+alternatives, after which it is frozen and the cardinality model
+is trained for 200 epochs. Both models use AdamW (learning rate
+$10^{-5}$, weight decay $10^{-4}$, and batch size 16) and are trained
+on an NVIDIA GeForce RTX 5090 GPU.
+Unless otherwise stated, we use $\alpha=0.01$ and train separate
+cardinality models for different expert-cost weights to evaluate
+the quality--cost trade-off.
+All learned methods are evaluated over three random seeds.
+Reported $\pm$ values denote the standard deviation across these runs.
+Additional implementation details are provided in the appendix.
+%\lokesha{here we need to update architecture details and remove about B and ek vector, do wonder whter we need std here, or either confidence interval}
 
 \input{tables/fixed_cardinality}
 
 \paragraph{Evaluation metrics.}
-We report video-level mean intersection over union (mIoU), average cardinality, and the average system cost, which combines segmentation loss with expert prompting cost.
-Unless otherwise stated, all methods use \(\alpha=0.01\); results for additional \(\alpha\) values are in the appendix.
+We report video-level mean intersection over union (mIoU), the mean number of requested corrections ($\bar{k}$), and the average system cost, defined as $1-\mathrm{mIoU}+\alpha\bar{k}$, where $\alpha$ is a fixed
+penalty assigned to each requested correction.
+%\lokesha{say statisttical details , while main evaluation metrix is iou JandF are in supplement}
 
-\begin{figure*}[t]
-    \centering
 
-    \begin{minipage}[t]{0.45\textwidth}
-        \vspace{0pt}
-        \centering
-
-        \input{tables/number_random_subsets} 
-
-        \vfill
-
-        \input{tables/component_ablation}
-
-        
-
-    \end{minipage}
-    \hfill
-    \begin{minipage}[t]{0.5\textwidth}
-        \vspace{0pt}
-        \centering
-
-        \includegraphics[width=0.75\linewidth]{Figures/coverage_curves.pdf}
-
-        \caption{
-        Mean IoU at different non-deferral coverage levels. Coverage is
-        the fraction of videos that retain the initial segmentation
-        without corrective prompting: \(0\) means that all videos are
-        corrected, whereas \(1\) means that none are corrected.
-        Higher curves indicate better segmentation quality at the same
-        coverage.
-        }
-        \label{fig:coverage_curves}
-
-    \end{minipage}
-
-\end{figure*}
 
 \paragraph{Evaluation protocols and comparison methods.}
-To evaluate the quality--cost trade-off (Q1), we allow each method to request
-\(k\in\{0,\ldots,4\}\) corrections and report mIoU, mean selected
-cardinality, and system cost. We compare against a no-correction reference,
-a random policy, and four baselines. Lazy-XMem~\cite{vujasinovic2024strike}
-triggers corrections online using per-frame uncertainty, while
+
+
+\noindent\textbf{Q1: How effectively does the proposed framework
+balance segmentation quality and expert correction cost?}
+We evaluate variable-cardinality deferral under a maximum correction
+budget of $K=4$, comparing against a no-correction reference,
+a random policy, and four baselines.
+Lazy-XMem~\cite{vujasinovic2024strike} triggers corrections
+using per-frame uncertainty, while
 L2RP~\cite{rasanjalee2026understanding} supports only
-\(k\in\{0,1\}\). We additionally adapt two variable-cardinality
-multiple-expert deferral methods from classification by treating candidate
-frames as expert actions. LECODU~\cite{zhang2024learning} predicts how many
-corrections to request and samples that number of frames at random.
-Adaptive Top-\(k(x)\)~\cite{montreuil2025ask} predicts the correction
-cardinality and selects the highest-ranked frames according to their
-independently estimated correction utility.
-We also report an oracle upper
-bound that, for each video, jointly selects the cardinality and corresponding
-frame set that yield the lowest system cost.
+$k\in\{0,1\}$. We additionally adapt two cost-aware learning-to-defer (L2D)
+approaches originally proposed for multiple-expert classification
+to our video frame-selection setting, treating candidate correction
+frames as expert actions. LECODU~\cite{zhang2024learning}
+predicts the number of corrections to request and selects the
+corresponding frames at random, while Adaptive Top-$k(x)$~
+\cite{montreuil2025ask} predicts the correction cardinality
+and selects frames according to independently estimated
+correction utilities. We also include an oracle upper bound
+that jointly selects the cardinality and correction frames
+to minimise system cost.
 
-We also evaluate performance across non-deferral coverage levels. For each
-method, using its own output probabilities, we threshold
-\(d=\max_{k>0}\Pr_{\phi}(k\mid v,\widehat{y})
--\Pr_{\phi}(0\mid v,\widehat{y})\); videos above the threshold are corrected
-using the most probable positive cardinality, while the remainder retain the
-current propagation. Sweeping the threshold yields the mIoU--coverage curve.
+We further examine the quality--cost trade-off across different
+expert-cost weights $\alpha$. To analyse deferral decisions,
+we evaluate mIoU across non-deferral coverage levels by varying
+the deferral threshold. Finally, we analyse the adaptive allocation of corrections
+by grouping videos according to their initial segmentation
+mIoU and examining the mean selected cardinality and
+resulting mIoU improvement across different quality levels.
 
-To compare frame selection independently of the cardinality (Q2), we fix the number of corrections per video and report the resulting mIoU.
-The multi-frame selection model is conditioned on the specified cardinality and directly selects the corresponding number of frames.
-We compare against random selection, a min-IoU heuristic that selects the k frames with the lowest IoU between the initial propagation and ground truth,
-Top-\(k\) ranking, and adaptations of HVSA~\cite{hvsa}, EVA-VOS~\cite{delatolas2024learning}, and IVOS-W~\cite{IVOSW}.
-HVSA and Top-\(k\) perform batch frame selection, whereas EVA-VOS and IVOS-W select frames sequentially, re-propagating after each correction before selecting the next frame.
-We also report an oracle upper bound that, for each video and fixed \(k\), selects the frame subset that yields the highest mIoU.
+\noindent\textbf{Q2: How effective is the proposed multi-frame
+selection model under a fixed correction budget?}
+To evaluate frame selection independently of cardinality decisions,
+we fix the number of corrections per video and compare against
+random selection, a minimum-IoU heuristic that selects frames
+with the lowest IoU between the initial propagation and ground truth,
+a fixed-cardinality variant of Top-$k(x)$~\cite{montreuil2025ask}
+that selects the $k$ frames with the highest independently estimated
+correction utilities, and adaptations of HVSA~\cite{hvsa},
+EVA-VOS~\cite{delatolas2024learning}, and IVOS-W~\cite{IVOSW}.
+HVSA and Top-$k(x)$ select correction frames in a batch, whereas
+EVA-VOS and IVOS-W select frames sequentially, re-propagating
+after each correction. Our method selects all correction frames
+in a single batch without intermediate re-propagation.
+We also report an oracle upper bound that selects the frame
+subset yielding the highest mIoU for each fixed $k$.
 
-To analyse the cardinality model (Q3), we group videos by their initial video-level mIoU and examine both the mean predicted correction cardinality and the resulting improvement in segmentation performance for each group.
+We additionally present ablation studies, robustness evaluations,
+and qualitative results. Further details of the baseline adaptations,
+evaluation protocols, and additional analyses are provided in the appendix.
 
-Further details of the baseline adaptations and evaluation protocols are provided in the appendix.
+
+

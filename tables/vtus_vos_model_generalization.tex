@@ -1,0 +1,34 @@
+% Source: Results/Table 8/vtus_vos_model_generalization_dummy.csv
+% Placeholder values: replace with verified measurements before submission.
+\begin{table}[t]
+\centering
+\caption{Generalization across video object segmentation models
+on VTUS. We evaluate the proposed framework with SAM2.1,
+Cutie, and SAMURAI, reporting video-level mIoU, mean selected
+cardinality, and system cost.}
+\label{tab:vtus_vos_model_generalization}
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Method} & \textbf{mIoU} $\uparrow$ & \textbf{Mean $k$} & \textbf{Cost} $\downarrow$ \\
+\midrule
+\multicolumn{4}{c}{\textbf{SAM2.1 Hiera-Tiny}} \\
+\midrule
+No correction & 0.627 & 0.00 & 0.373 \\
+Top-$k(x)$ & 0.795 & 2.90 & 0.234 \\
+\textbf{Ours} & \textbf{0.819} & \textbf{2.81} & \textbf{0.209} \\
+\midrule
+\multicolumn{4}{c}{\textbf{Cutie}} \\
+\midrule
+No correction & 0.647 & 0.00 & 0.353 \\
+Top-$k(x)$ & 0.780 & 2.88 & 0.249 \\
+\textbf{Ours} & \textbf{0.802} & \textbf{2.76} & \textbf{0.226} \\
+\midrule
+\multicolumn{4}{c}{\textbf{SAMURAI}} \\
+\midrule
+No correction & 0.665 & 0.00 & 0.335 \\
+Top-$k(x)$ & 0.793 & 2.70 & 0.234 \\
+\textbf{Ours} & \textbf{0.812} & \textbf{2.59} & \textbf{0.214} \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,82 +1,106 @@
-\section{Results and analysis}
 
-\begin{figure*}[t]
-\centering
+\section{Results and Analysis}
+\label{sec:results}
 
-\begin{tabular}{@{}
-p{0.29\textwidth}
-@{\hspace{0.04\textwidth}}
-p{0.29\textwidth}
-@{\hspace{0.04\textwidth}}
-p{0.29\textwidth}
-@{}}
+\subsection{Cost-Aware Variable-Cardinality Deferral}
+\label{sec:cost_aware_results}
 
-\centering
-\includegraphics[width=\linewidth]
-{Figures/initial_iou_vs_selected_k_binned.pdf}
-\captionof{figure}{
-Mean number of selected correction frames versus initial segmentation quality. Videos are grouped into five initial-mIoU bins, and the
-    labels show the mean mIoU gain after correction. Lower-quality
-    segmentations receive more corrections and larger gains, indicating that
-    the policy allocates expert effort where it is most useful.
-}
-\label{fig:initial_iou_selected_k}
+Table~\ref{tab:overall_comparison} shows that, without correction,
+the initial propagation yields the lowest mIoU, while random
+correction improves it. L2RP requests the fewest corrections but
+is limited to a single frame, whereas Lazy-XMem requests $3$--$4$
+corrections. LECODU and Top-$k(x)$ incur similar system costs on
+CAMotion, while Top-$k(x)$ achieves lower costs on VOST, SUN-SEG
+and VTUS. Our method achieves the highest mIoU with the lowest
+system cost among non-oracle methods. Compared with Top-$k(x)$,
+ours reduces the mean cardinality by $3.1$--$9.2\%$ and the
+system cost by $5.4$--$11.4\%$. Although the oracle defines
+the upper bound, ours consistently remains the closest,
+reducing $28.1$--$75.0\%$ of the system-cost gap between
+Top-$k(x)$ and the oracle.
 
-&
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]
+    {Figures/all_datasets_iou_vs_k_expert_cost.pdf}
+    \caption{
+        Quality--cost trade-off under varying expert-cost
+        weight $\alpha$. Each point reports the video-level
+        mIoU and mean selected cardinality for one value of
+        $\alpha$, with marker size increasing with $\alpha$.
+        Our method is generally above the baselines at
+        comparable correction budgets.
+    }
+    \label{fig:alpha_sweep}
+\end{figure}
 
-\centering
-\includegraphics[width=\linewidth]
-{Figures/all_datasets_iou_vs_k_expert_cost.pdf}
-\captionof{figure}{
-Quality--cost trade-off under varying expert-cost weight \(\alpha\).
-        Each point reports the video-level mIoU and mean selected cardinality for
-        one value of \(\alpha\), with marker size increasing with \(\alpha\).
-        Our method is
-generally above the baselines at comparable correction budgets
-}
-\label{fig:alpha_sweep}
+Figure~\ref{fig:alpha_sweep} shows that increasing $\alpha$
+generally reduces both the mean selected cardinality and mIoU.
+Our method generally achieves higher mIoU than the baselines
+at comparable correction budgets, demonstrating a consistent
+quality--cost trade-off across different expert-cost settings.
 
-&
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]
+    {Figures/coverage_curves.pdf}
+    \caption{
+        Mean IoU at different non-deferral coverage levels.
+        Coverage is the fraction of videos that retain the
+        initial segmentation without corrective prompting:
+        $0$ means that all videos are corrected, whereas $1$
+        means that none are corrected. Higher curves indicate
+        better segmentation quality at the same coverage.
+    }
+    \label{fig:coverage_curves}
+\end{figure}
 
-\centering
-\includegraphics[width=\linewidth]
-{Figures/sunseg_iterative_iou_by_iteration.pdf}
-\captionof{figure}{
-Mean IoU over corrective-prompting iterations on SUN-SEG at
-    $\alpha=0.001$. Our models with maximum cardinality
-    $K\in\{1,2,3,4\}$ select correction frames in batches, whereas EVA-VOS
-    and IVOS-W select one frame per iteration. After each iteration, the
-    selected frames are prompted and the video is re-propagated. Point labels
-    show the cumulative number of selected frames.
-}
-\label{fig:sunseg_iterative_prompting}
+Figure~\ref{fig:coverage_curves} further shows that our method
+achieves the highest mIoU across non-deferral coverage levels,
+indicating that its performance gains are consistent across
+a wide range of operating points rather than tied to a
+particular decision threshold.
 
-\end{tabular}
-\end{figure*}
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]
+    {Figures/initial_iou_vs_selected_k_binned.pdf}
+    \caption{
+        Mean number of selected correction frames versus
+        initial segmentation quality. Videos are grouped
+        into five initial-mIoU bins, and the labels show
+        the mean mIoU gain after correction. Lower-quality
+        segmentations receive more corrections and larger
+        gains, indicating adaptive allocation of expert effort.
+    }
+    \label{fig:initial_iou_selected_k}
+\end{figure}
 
-\paragraph{Quality--cost trade-off (Q1).}
+Figure~\ref{fig:initial_iou_selected_k} shows that the policy
+allocates larger correction budgets to videos with lower
+initial mIoU and fewer corrections to those with higher
+initial mIoU. The mIoU gains are positive across all bins
+and are generally larger for lower-quality initial propagations.
+These results indicate that the policy adaptively allocates
+corrections according to the initial segmentation quality
+and the observed benefit of additional interventions.
 
-Table~\ref{tab:overall_comparison} shows that, without correction, the initial propagation yields the lowest mIoU, while random correction improves it.
-L2RP requests the fewest corrections but is limited to a single frame, whereas Lazy-XMem requests $3$--$4$ corrections.
-LECODU and Top-$k(x)$ incur similar system costs on CAMotion, while Top-$k(x)$ achieves lower costs on VOST, SUN-SEG and VTUS.
-Our method achieves the highest mIoU with the lowest system cost.
-Compared with Top-$k(x)$, ours reduces the mean cardinality by $3.1$--$9.2\%$ and the system cost by
-$5.4$--$11.4\%$.
-Although the oracle defines the upper bound, ours consistently remains the closest reducing $28.1$--$75.0\%$ of the
-system-cost gap between Top-$k(x)$ and the oracle.
 
-Figure~\ref{fig:coverage_curves} further shows that our method achieves the highest mIoU across non-deferral coverage levels, showing its performance gains are consistent across wide range of operating points rather than tied to a particular decision threshold.
+\subsection{Frame Selection at Fixed Cardinality}
+\label{sec:fixed_cardinality_results}
 
-These results show that variable-cardinality deferral improves the quality--cost trade-off by allocating correction effort according to each video, achieving higher segmentation quality without requesting more expert prompts.
+Table~\ref{tab:fixed_cardinality} compares frame-selection methods
+under a fixed correction budget of $k=3$. IVOS-W and EVA-VOS
+perform sequential frame selection, re-propagating after each
+correction, whereas batch methods select all correction frames
+in a single round from the initial segmentation.
+Despite not benefiting from intermediate propagation updates,
+our method achieves the highest non-oracle mIoU across all four
+datasets, improving over EVA-VOS by $0.5$--$4.5$ percentage points
+and batch Top-$k$ by $0.6$--$4.0$ percentage points.
+These results demonstrate the effectiveness of our multi-frame
+selection model under a fixed correction budget.
+Additional results for different values of $k$ are provided
+in the appendix.
 
-\paragraph{Frame selection at fixed cardinality (Q2).}
 
-Table~\ref{tab:fixed_cardinality} compares frame selection methods with a fixed expert budget of $k=3$.
-IVOS-W and EVA-VOS perform sequential frame selection, re-propagating after each correction, whereas the batch methods select all frames in a single batch from the initial segmentation.
-Despite not benefiting from intermediate propagation updates, our method achieves the highest non-oracle mIoU on all four datasets improving over EVA-VOS by $0.5$--$4.5\%$ and batch Top-$k$ by $0.6$--$4.0\%$.
-Results for $k\in{1,2,3,4}$, reported in the appendix, show the same trend.
-
-\paragraph{Allocation of expert effort (Q3).}
-Figure~\ref{fig:initial_iou_selected_k} shows that the policy allocates larger correction budgets to videos with lower initial mIoU and fewer corrections to those with higher initial mIoU.
-The mIoU gains are positive across all bins and are generally larger for lower-quality initial propagations.
-These results indicate that the policy allocates expert effort according to both the current propagation quality and the expected benefit of additional corrections.

@@ -1,29 +1,239 @@
-\section{Ablation studies}
+
+\subsection{Ablation Studies and Further Analysis}
 \label{sec:ablation}
 
-\textbf{Effect of the expert-cost weight: }
-Figure~\ref{fig:alpha_sweep} shows that increasing $\alpha$ reduces both
-the mean selected cardinality and mIoU. Our method generally achieves
-higher mIoU than the baselines at comparable correction budgets,
-showing a consistent quality--cost trade-off across datasets.
+\noindent\textbf{Cardinality decisions.}
+Table~\ref{tab:vtus_cardinality_decision_ablation} evaluates
+the contribution of learned cardinality decisions using the
+same multi-frame selector. On VTUS, learned cardinality
+achieves an mIoU of 0.819, compared with 0.746 for random
+cardinality selection, demonstrating the benefit of learning
+how many corrections to request for each video.
 
-\noindent\textbf{Number of sampled frame subsets: }
-Table~\ref{tab:number_random_subsets} shows that increasing the number of
-sampled subsets generally improves mIoU. Compared with no sampled alternatives
-(\(B=0\)), \(B=4\) improves mIoU by 0.034 on VOST, 0.022 on CAMotion, and
-0.032 on VTUS. SUN-SEG performs best at \(B=2\), with little change at \(B=4\).
-We therefore use \(B=4\) in the main experiments.
+\input{tables/vtus_cardinality_decision_ablation}
 
-\noindent\textbf{Cardinality and frame-selection components:}
-Table~\ref{tab:component_ablation} shows that replacing either learned
-component with a random alternative reduces video-level mIoU. Randomising
-the cardinality decision causes the larger reduction, particularly on
-VOST and VTUS, while random frame selection also lowers performance
-across all datasets. Combining the learned cardinality model with
-multi-frame selection achieves the highest mIoU on every dataset.
+\noindent\textbf{Cardinality and frame-selection components.}
+Table~\ref{tab:component_ablation_four_datasets} evaluates the contributions
+of learned cardinality decisions and selection-conditioned
+frame selection across all four datasets.
+At fixed $k=4$, selection-conditioned ranking consistently
+outperforms static-context ranking, demonstrating the benefit
+of accounting for previously selected correction frames.
+The same improvement is observed under learned cardinality.
+Furthermore, learned cardinality reduces the number of
+requested corrections and system cost compared with fixed
+cardinality. Combining learned cardinality with
+selection-conditioned frame selection achieves the lowest
+system cost across all four datasets, demonstrating the
+benefits of both components.
 
-\noindent\textbf{Multiple correction rounds:}
-Although our framework requests all corrections in a single round, the same policy can be reapplied after each re-propagation.
-Figure~\ref{fig:sunseg_iterative_prompting} reports this setting on SUN-SEG for maximum cardinalities \(K\in\{1,2,3,4\}\).
-Larger batches reach a given mean IoU in fewer interaction rounds, which matters because each round returns the video to the expert for review.
-Each round applies the policy to the current propagation alone, without distributing a correction budget across rounds, and optimising jointly across rounds is a natural extension.
+\input{tables/component_ablation_four_datasets}
+
+
+\noindent\textbf{Number of sampled frame subsets.}
+Table~\ref{tab:number_random_subsets} examines the effect of the number
+of sampled alternative frame sets $B$ used during training.
+Increasing $B$ generally improves segmentation performance.
+From $B=1$ to $B=4$, mIoU increases by 0.023 on VOST,
+0.017 on CAMotion, and 0.019 on VTUS.
+SUN-SEG achieves its highest mIoU at $B=2$, with comparable
+performance at $B=4$. We therefore use $B=4$ in our experiments.
+
+\begin{table}[t]
+    \centering
+    \input{tables/number_random_subsets}
+\end{table}
+
+
+\noindent\textbf{Robustness to imperfect corrective prompts..}
+Table~\ref{tab:vtus_imperfect_corrections} evaluates the robustness
+of our framework to different prompting configurations on VTUS.
+We consider simulated point prompts with 1, 3, and 5 clicks
+per prompted frame, alongside ground-truth mask prompts.
+The same prompting configuration is used for initialization
+and subsequent corrections. Our method consistently
+outperforms Top-$k(x)$ across all prompting configurations,
+demonstrating its robustness to imperfect corrective prompts.
+
+
+
+%Following the prompt-robustness evaluation protocol of Zhao et al., we simulate imperfect expert annotations by applying random morphological perturbations to ground-truth masks. Specifically, each corrective mask is randomly subjected to erosion or dilation, with the perturbation strength sampled from one to five morphological iterations. This introduces controlled under-segmentation and over-segmentation errors along object boundaries. The perturbed masks replace ground-truth masks as corrective prompts to SAM2, while the initial prompt remains unchanged. We evaluate the resulting video-level segmentation performance across three random seeds and compare against the perfect-correction setting.
+
+\input{tables/vtus_imperfect_corrections}
+
+\noindent\textbf{Candidate sampling density.}
+Table~\ref{tab:vtus_candidate_sampling_density} evaluates the effect of
+candidate sampling density on VTUS. We vary the number of
+uniformly sampled frames from 10 to 30 while keeping the
+maximum correction cardinality fixed at $K=4$.
+Increasing the sampling density improves our video-level mIoU
+from 0.819 to 0.834, while reducing the mean selected
+cardinality from 2.81 to 2.76 and system cost from 0.209
+to 0.194. Our method consistently achieves higher mIoU
+and lower system cost than Top-$k(x)$ across all sampling
+densities, demonstrating its effectiveness with larger
+candidate pools and finer temporal sampling.
+
+\input{tables/vtus_candidate_sampling_density}
+
+\noindent\textbf{Generalization across VOS models.}
+Table~\ref{tab:vtus_vos_model_generalization} evaluates
+the generalization of our framework across three video object
+segmentation models: SAM2.1, Cutie, and SAMURAI on VTUS.
+Our method consistently achieves higher mIoU and lower system
+cost than Top-$k(x)$ across all three models, demonstrating
+that its effectiveness is not limited to the SAM2.1 segmentation
+model used in the main experiments.
+
+\input{tables/vtus_vos_model_generalization}
+
+\noindent\textbf{Multiple correction rounds.}
+Although our framework requests corrections in a single batch,
+the same policy can be reapplied after each re-propagation.
+Figure~\ref{fig:sunseg_iterative_prompting} evaluates this setting
+on SUN-SEG for maximum cardinalities $K\in\{1,2,3,4\}$.
+Larger correction batches achieve a given mIoU in fewer
+interaction rounds than sequential methods, reducing the
+number of times expert intervention is requested.
+These results demonstrate that our framework can support
+iterative correction while retaining the benefits of
+batch frame selection.
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=\linewidth]{Figures/sunseg_iterative_iou_by_iteration.pdf}
+    \caption{Mean IoU across correction rounds on SUN-SEG at
+    $\alpha=0.001$. Our framework selects correction frames
+    in batches with maximum cardinality $K\in\{1,2,3,4\}$,
+    whereas EVA-VOS and IVOS-W select one frame per round.
+    After each round, the video is re-propagated.
+    Point labels indicate the cumulative number of corrections.}
+    \label{fig:sunseg_iterative_prompting}
+\end{figure}
+
+\subsection{Qualitative Results}
+\label{sec:qualitative_results}
+
+Figure~\ref{fig:sunseg_qualitative} presents qualitative
+comparisons on SUN-SEG for videos with different levels of
+initial segmentation quality. In the low-initial-IoU example,
+our method selects three corrective frames and achieves higher
+final IoU with lower system cost than Top-$k(x)$, which
+requests four corrections. In the high-initial-IoU example,
+our method correctly retains the initial propagation without
+additional corrections, whereas Top-$k(x)$ requests an
+unnecessary correction that reduces segmentation quality.
+These examples illustrate the ability of our framework to
+adapt correction decisions to the needs of individual videos.
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]
+    {Figures/sunseg_comparison_grid.pdf}
+    \caption{Qualitative comparison on SUN-SEG for videos
+    with low and high initial segmentation quality.
+    Our method selects fewer corrective frames while achieving
+    higher final IoU and lower system cost than Top-$k(x)$.
+    In the high-initial-IoU example, our method avoids an
+    unnecessary correction. Coloured borders and prompt
+    markers indicate the selected correction frames.}
+    \label{fig:sunseg_qualitative}
+\end{figure*}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% \section{Ablation studies}
+% \label{sec:ablation}
+
+% \noindent\textbf{Number of sampled frame subsets: }
+% Table~\ref{tab:number_random_subsets} shows that increasing the number of
+% sampled subsets generally improves mIoU. Compared with no sampled alternatives
+% (\(B=0\)), \(B=4\) improves mIoU by 0.034 on VOST, 0.022 on CAMotion, and
+% 0.032 on VTUS. SUN-SEG performs best at \(B=2\), with little change at \(B=4\).
+% We therefore use \(B=4\) in the main experiments.
+
+% \noindent\textbf{Cardinality decisions:}
+% Table~\ref{tab:vtus_cardinality_decision_ablation} compares random and learned
+% cardinality selection with the same multi-frame selector. Learned selection
+% achieves a video-level mIoU of 0.819, compared with 0.746 for random selection.
+
+% \input{tables/vtus_cardinality_decision_ablation}
+
+% \noindent\textbf{Context-conditioned frame selection:}
+% At fixed cardinality $k=4$, Table~\ref{tab:vtus_frame_selection_ablation}
+% compares independent frame ranking with context-conditioned selection.
+% Context-conditioned selection achieves a video-level mIoU of 0.819,
+% compared with 0.746 for independent ranking under the same correction budget.
+
+% \input{tables/vtus_frame_selection_ablation}
+
+% \noindent\textbf{Robustness to point prompts:}
+% Table~\ref{tab:vtus_imperfect_corrections} compares simulated point prompts
+% with ground-truth mask prompts on VTUS, using the same prompt configuration
+% for initialization and subsequent corrections. Our method outperforms
+% Top-$k(x)$ with 1, 3, and 5 clicks per prompted frame, while both methods
+% improve as more clicks are provided.
+
+% \input{tables/vtus_imperfect_corrections}
+
+% \noindent\textbf{Candidate sampling density:}
+% Table~\ref{tab:vtus_candidate_sampling_density} varies the number of uniformly
+% sampled frames on VTUS while keeping $K=4$. Increasing $N$ from 10 to 30
+% improves our video-level mIoU from 0.819 to 0.834, while the mean selected
+% cardinality decreases from 2.81 to 2.76 and system cost decreases from
+% 0.209 to 0.194. Our method achieves higher mIoU and lower system cost
+% than Top-$k(x)$ at each sampling density.
+
+% \input{tables/vtus_candidate_sampling_density}
+
+% \noindent\textbf{Generalization across VOS models:}
+% Table~\ref{tab:vtus_vos_model_generalization} presents the comparison
+% across SAM2.1, Cutie, and SAMURAI on VTUS.
+
+% \input{tables/vtus_vos_model_generalization}
+
+% \noindent\textbf{Multiple correction rounds:}
+% Although our framework requests all corrections in a single round, the same policy can be reapplied after each re-propagation.
+% Figure~\ref{fig:sunseg_iterative_prompting} reports this setting on SUN-SEG for maximum cardinalities \(K\in\{1,2,3,4\}\).
+% Larger batches reach a given mean IoU in fewer interaction rounds, which matters because each round returns the video to the expert for review.
+% Each round applies the policy to the current propagation alone, without distributing a correction budget across rounds, and optimising jointly across rounds is a natural extension.
+
+% % Supporting ablation tables are kept in the shared tables folder.
+% \begin{table}[t]
+%     \centering
+%     \input{tables/number_random_subsets}
+% \end{table}
+
+% \begin{figure}[t]
+%     \centering
+%     \includegraphics[width=\linewidth]{Figures/sunseg_iterative_iou_by_iteration.pdf}
+%     \caption{Mean IoU over corrective-prompting iterations on SUN-SEG at
+%     $\alpha=0.001$. Our models with maximum cardinality
+%     $K\in\{1,2,3,4\}$ select correction frames in batches, whereas EVA-VOS
+%     and IVOS-W select one frame per iteration. After each iteration, the
+%     selected frames are prompted and the video is re-propagated. Point labels
+%     show the cumulative number of selected frames.}
+%     \label{fig:sunseg_iterative_prompting}
+% \end{figure}

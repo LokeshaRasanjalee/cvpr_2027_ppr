@@ -1,0 +1,24 @@
+\begin{table}[t]
+\centering
+\caption{Effect of candidate sampling density on VTUS.
+We vary the number of uniformly sampled frames while
+keeping the maximum correction cardinality fixed at $K=4$.
+We report video-level mIoU, mean selected cardinality,
+and system cost.}
+\label{tab:vtus_candidate_sampling_density}
+\small
+\begin{tabular}{@{}clccc@{}}
+\toprule
+\textbf{$N$} & \textbf{Method} & \textbf{mIoU} $\uparrow$ & \textbf{Mean $k$} & \textbf{Cost} $\downarrow$ \\
+\midrule
+10 & Top-$k(x)$ & 0.795 & 2.90 & 0.234 \\
+10 & \textbf{Ours} & \textbf{0.819} & \textbf{2.81} & \textbf{0.209} \\
+\midrule
+20 & Top-$k(x)$ & 0.802 & 2.87 & 0.227 \\
+20 & \textbf{Ours} & \textbf{0.828} & \textbf{2.79} & \textbf{0.200} \\
+\midrule
+30 & Top-$k(x)$ & 0.806 & 2.85 & 0.223 \\
+30 & \textbf{Ours} & \textbf{0.834} & \textbf{2.76} & \textbf{0.194} \\
+\bottomrule
+\end{tabular}
+\end{table}
